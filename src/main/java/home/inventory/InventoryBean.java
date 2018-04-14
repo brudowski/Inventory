@@ -3,21 +3,27 @@ package home.inventory;
 import home.inventory.entities.Item;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 
 /**
  *
  * @author BRudowski
  */
+@Named
 public class InventoryBean {
-    
-    //need a database accessor for Items
+
+    @Inject
+    private EntityManager em;
     private final List<Item> items = new ArrayList<>();
     private String name;
     private double quantity;
     private String units;
     private double quantityModifier; //used to store how much should be added or removed from an item
     private String selected;
-    
+
     private void clear() {
         name = "";
         quantity = 0;
@@ -25,25 +31,38 @@ public class InventoryBean {
         quantityModifier = 0;
         selected = "";
     }
-    
+
+    @Transactional
     public void createItem() {
-        Item item = new Item(name, quantity, units);
-        //save item
-        clear();
+        if (em.find(Item.class, name) == null) {
+            Item item = new Item(name, quantity, units);
+            em.persist(item);
+            clear();
+        } else {
+            //send some warning/error message to the user
+        }
     }
-    
+
+    @Transactional
     private void modifyItemQuantity(double modifier) {
-        Item item; //pull from database using "selected" variable
-        item.setQuantity(item.getQuantity()+modifier);
-        //save item
+        Item item = em.find(Item.class, name);
+        item.setQuantity(item.getQuantity() + modifier);
+        em.merge(item);
     }
-    
+
     public void addQuantity() {
         modifyItemQuantity(quantityModifier);
     }
-    
+
     public void removeQuantity() {
         modifyItemQuantity(-quantityModifier);
+    }
+    
+    @Transactional
+    public void deleteItem() {
+        Item item = em.find(Item.class, name);
+        //need some query to check that an item isn't part of a recipe
+        em.remove(item);
     }
 
     public String getName() {
@@ -89,5 +108,5 @@ public class InventoryBean {
     public List<Item> getItems() {
         return items;
     }
-    
+
 }

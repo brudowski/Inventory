@@ -1,18 +1,28 @@
 package home.inventory;
 
 import home.inventory.entities.Ingredient;
+import home.inventory.entities.IngredientKey;
 import home.inventory.entities.Item;
 import home.inventory.entities.Recipe;
 import home.inventory.enums.Unit;
+import io.vavr.collection.Stream;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 
 /**
- *
+ *  
  * @author BRudowski
  */
+
+@Named
 public class RecipeBean {
 
+    @Inject
+    private EntityManager em;
     private String recipeName;
     private String itemName;
     private double quantity;
@@ -22,17 +32,19 @@ public class RecipeBean {
 
     private final List<Recipe> recipes = new ArrayList<>();
 
+    @Transactional
     public void createRecipe() {
         Recipe recipe = new Recipe(recipeName);
-        //save recipe
+        em.persist(recipe);
     }
-
+    
+    @Transactional
     public void addIngredientToRecipe() {
-        Recipe recipe; //get recipe from database using selectedRecipe
-        Item item = null;//get item from database
-        if (item != null) {
+        Recipe recipe = getRecipe(); //get recipe from database using selectedRecipe
+        Item item = em.find(Item.class, selectedItem);
+        if (item == null) {
             item = new Item(itemName, 0.0, unit);
-            //save item to database
+            em.persist(item);
         } else {
             //check if the units can be converted
             if (!unit.equals(item.getUnits())) {
@@ -44,13 +56,39 @@ public class RecipeBean {
                 }
             }
         }
-        Ingredient ingredient; //get from database using item name & quantity
-        if () {
-            ingredient = new Ingredient(itemName, quantity);
+        Ingredient ingredient = new Ingredient(item, quantity, recipe);
+        if (!recipe.getIngredients().contains(ingredient)) {
+            recipe.getIngredients().add(ingredient);
+            em.persist(ingredient);
+        } else {
+            final String ingredientName = item.getName();
+            ingredient = Stream.ofAll(recipe.getIngredients())
+                    .filter(i -> i.getItem().getName().equals(ingredientName))
+                    .getOrElse(ingredient);
+            ingredient.setQuantity(quantity);
+            em.merge(ingredient);
         }
-        recipe.getIngredients().add(e)
+    }
+    
+    public void removeIngredientFromRecipe() {
+        Recipe recipe = getRecipe();
+        Ingredient ingredient = em.find(Ingredient.class, new IngredientKey(recipeName, itemName));
+        recipe.getIngredients().remove(ingredient);
+        em.merge(recipe);
+        em.remove(ingredient);
+    }
+    
+    @Transactional
+    public void deleteRecipe() {
+        Recipe recipe = getRecipe();
+        em.remove(recipe);
     }
 
+    
+    private Recipe getRecipe() {
+        return em.find(Recipe.class, recipeName);
+    }
+    
     public String getRecipeName() {
         return recipeName;
     }

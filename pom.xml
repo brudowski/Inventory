@@ -4,7 +4,7 @@
 
     <groupId>home</groupId>
     <artifactId>Inventory</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
     <packaging>war</packaging>
 
     <name>Inventory</name>
@@ -19,6 +19,16 @@
             <groupId>io.vavr</groupId>
             <artifactId>vavr</artifactId>
             <version>0.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>3.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.deltaspike.core</groupId>
+            <artifactId>deltaspike-core-api</artifactId>
+            <version>1.7.0</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>

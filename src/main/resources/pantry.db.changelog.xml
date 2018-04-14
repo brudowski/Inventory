@@ -1,0 +1,32 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    <changeSet>
+        <createTable tableName="ITEM">
+            <column name="NAME" type="java.sql.Types.VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="PK_ITEM"/>
+            </column>
+            <column name="QUANTITY" type="java.sql.Types.DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UNITS" type="java.sql.Types.VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="RECIPE">
+            <column name="NAME" type="java.sql.Types.VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="PK_RECIPE"/>
+            </column>
+            <column name="INSTRUCTIONS" type="java.sql.Types.CLOB"/>
+        </createTable>
+        <createTable tableName="INGREDIENT">
+            <column name="RECIPE_NAME" type="java.sql.Types.VARCHAR(255)"/>
+            <column name="ITEM_NAME" type="java.sql.Types.VARCHAR(255)"/>
+            <column name="QUANTITY" type="java.sql.Types.DOUBLE"/>
+        </createTable>
+        <addPrimaryKey tableName="INGREDIENT" columnNames="RECIPE_NAME, ITEM_NAME" constraintName="PK_INGREDIENT"/>
+        <addForeignKeyConstraint baseTableName="INGREDIENT" baseColumnNames="RECIPE_NAME" constraintName="FK_INGREDIENT_RECIPE" referencedTableName="RECIPE" referencedColumnNames="NAME"/>
+        <addForeignKeyConstraint baseTableName="INGREDIENT" baseColumnNames="ITEM_NAME" constraintName="FK_INGREDIENT_ITEM" referencedTableName="ITEM" referencedColumnNames="NAME"/>
+    </changeSet>
+</databaseChangeLog>

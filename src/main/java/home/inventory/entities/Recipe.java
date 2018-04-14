@@ -1,19 +1,31 @@
 package home.inventory.entities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  *
  * @author BRudowski
  */
-public class Recipe {
+@Entity
+public class Recipe implements Serializable {
     
+    private static final long serialVersionUID = 1L;
+    @Id
     private String name;
-    private final List<Ingredient> ingredients = new ArrayList<>(); //should this be a Map<Item, Float> instead?
-    private final List<String> categories = new ArrayList<>();
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.REMOVE)
+    private final List<Ingredient> ingredients = new ArrayList<>(); 
+//    private final List<String> categories = new ArrayList<>(); //TO BE IMPLEMENTED IN A FUTURE BUILD
     private String instructions; //CLOB in database
+
+    public Recipe() {
+    }
 
     public Recipe(String name) {
         this.name = name;
@@ -29,10 +41,6 @@ public class Recipe {
 
     public List<Ingredient> getIngredients() {
         return ingredients;
-    }
-
-    public List<String> getCategories() {
-        return categories;
     }
 
     @Override

@@ -1,28 +1,43 @@
 package home.inventory.entities;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.ManyToOne;
 
 /**
  *
  * @author BRudowski
  */
-public class Ingredient {
-    private String item;
+@Entity
+@IdClass(IngredientKey.class)
+public class Ingredient implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+    @Id
+    @ManyToOne
+    private Item item;
     private double quantity;
-    private final List<Recipe> recipe = new ArrayList<>();
+    @Id
+    @ManyToOne
+    private Recipe recipe;
 
-    public Ingredient(String item, double quantity) {
+    public Ingredient() {
+    }
+
+    public Ingredient(Item item, double quantity, Recipe recipe) {
         this.item = item;
         this.quantity = quantity;
+        this.recipe = recipe;
     }
     
-    public String getItem() {
+    public Item getItem() {
         return item;
     }
 
-    public void setItem(String item) {
+    public void setItem(Item item) {
         this.item = item;
     }
 
@@ -34,15 +49,19 @@ public class Ingredient {
         this.quantity = quantity;
     }
 
-    public List<Recipe> getRecipe() {
+    public Recipe getRecipe() {
         return recipe;
+    }
+
+    public void setRecipe(Recipe recipe) {
+        this.recipe = recipe;
     }
 
     @Override
     public int hashCode() {
         int hash = 5;
         hash = 79 * hash + Objects.hashCode(this.item);
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.quantity) ^ (Double.doubleToLongBits(this.quantity) >>> 32));
+        hash = 79 * hash + Objects.hashCode(this.recipe);
         return hash;
     }
 
@@ -58,14 +77,16 @@ public class Ingredient {
             return false;
         }
         final Ingredient other = (Ingredient) obj;
-        if (Double.doubleToLongBits(this.quantity) != Double.doubleToLongBits(other.quantity)) {
+        if (!Objects.equals(this.item, other.item)) {
             return false;
         }
-        if (!Objects.equals(this.item, other.item)) {
+        if (!Objects.equals(this.recipe, other.recipe)) {
             return false;
         }
         return true;
     }
+
+
 
 
     
