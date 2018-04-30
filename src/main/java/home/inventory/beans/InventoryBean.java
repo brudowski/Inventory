@@ -1,22 +1,24 @@
-package home.inventory;
+package home.inventory.beans;
 
 import home.inventory.entities.Item;
+import home.inventory.repos.ItemRepo;
 import java.util.ArrayList;
 import java.util.List;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
 /**
  *
  * @author BRudowski
  */
+@ApplicationScoped
 @Named
 public class InventoryBean {
 
     @Inject
-    private EntityManager em;
+    private ItemRepo itemRepo;
     private final List<Item> items = new ArrayList<>();
     private String name;
     private double quantity;
@@ -34,9 +36,9 @@ public class InventoryBean {
 
     @Transactional
     public void createItem() {
-        if (em.find(Item.class, name) == null) {
+        if (itemRepo.findBy(name) == null) {
             Item item = new Item(name, quantity, units);
-            em.persist(item);
+            itemRepo.save(item);
             clear();
         } else {
             //send some warning/error message to the user
@@ -45,9 +47,9 @@ public class InventoryBean {
 
     @Transactional
     private void modifyItemQuantity(double modifier) {
-        Item item = em.find(Item.class, name);
+        Item item = itemRepo.findBy(name);
         item.setQuantity(item.getQuantity() + modifier);
-        em.merge(item);
+        itemRepo.save(item);
     }
 
     public void addQuantity() {
@@ -57,12 +59,12 @@ public class InventoryBean {
     public void removeQuantity() {
         modifyItemQuantity(-quantityModifier);
     }
-    
+
     @Transactional
     public void deleteItem() {
-        Item item = em.find(Item.class, name);
+        Item item = itemRepo.findBy(name);
         //need some query to check that an item isn't part of a recipe
-        em.remove(item);
+        itemRepo.remove(item);
     }
 
     public String getName() {

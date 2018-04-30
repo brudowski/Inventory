@@ -1,28 +1,34 @@
-package home.inventory;
+package home.inventory.beans;
 
 import home.inventory.entities.Ingredient;
 import home.inventory.entities.IngredientKey;
 import home.inventory.entities.Item;
 import home.inventory.entities.Recipe;
 import home.inventory.enums.Unit;
+import home.inventory.repos.IngredientRepo;
+import home.inventory.repos.ItemRepo;
+import home.inventory.repos.RecipeRepo;
 import io.vavr.collection.Stream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
 /**
- *  
+ *
  * @author BRudowski
  */
-
 @Named
 public class RecipeBean {
 
+    private final List<Recipe> recipes = new ArrayList<>();
     @Inject
-    private EntityManager em;
+    private RecipeRepo recipeRepo;
+    @Inject
+    private ItemRepo itemRepo;
+    @Inject
+    private IngredientRepo ingredientRepo;
     private String recipeName;
     private String itemName;
     private double quantity;
@@ -30,21 +36,19 @@ public class RecipeBean {
     private String selectedItem;
     private String unit;
 
-    private final List<Recipe> recipes = new ArrayList<>();
-
     @Transactional
     public void createRecipe() {
         Recipe recipe = new Recipe(recipeName);
-        em.persist(recipe);
+        recipeRepo.save(recipe);
     }
-    
+
     @Transactional
     public void addIngredientToRecipe() {
-        Recipe recipe = getRecipe(); //get recipe from database using selectedRecipe
-        Item item = em.find(Item.class, selectedItem);
+        Recipe recipe = recipeRepo.findBy(selectedRecipe);
+        Item item = itemRepo.findBy(selectedItem);
         if (item == null) {
             item = new Item(itemName, 0.0, unit);
-            em.persist(item);
+            itemRepo.save(item);
         } else {
             //check if the units can be converted
             if (!unit.equals(item.getUnits())) {
@@ -58,37 +62,45 @@ public class RecipeBean {
         }
         Ingredient ingredient = new Ingredient(item, quantity, recipe);
         if (!recipe.getIngredients().contains(ingredient)) {
-            recipe.getIngredients().add(ingredient);
-            em.persist(ingredient);
+            ingredientRepo.save(ingredient);
         } else {
-            final String ingredientName = item.getName();
-            ingredient = Stream.ofAll(recipe.getIngredients())
-                    .filter(i -> i.getItem().getName().equals(ingredientName))
-                    .getOrElse(ingredient);
-            ingredient.setQuantity(quantity);
-            em.merge(ingredient);
+            //some message to user/log
         }
     }
-    
-    public void removeIngredientFromRecipe() {
-        Recipe recipe = getRecipe();
-        Ingredient ingredient = em.find(Ingredient.class, new IngredientKey(recipeName, itemName));
-        recipe.getIngredients().remove(ingredient);
-        em.merge(recipe);
-        em.remove(ingredient);
-    }
-    
+
     @Transactional
-    public void deleteRecipe() {
-        Recipe recipe = getRecipe();
-        em.remove(recipe);
+    public void updateIngredientQuantity() {
+        Recipe recipe = recipeRepo.findBy(selectedRecipe);
+        Item item = itemRepo.findBy(selectedItem);
+        final String ingredientName = item.getName();
+        Ingredient ingredient = Stream.ofAll(recipe.getIngredients())
+                .filter(i -> i.getItem().getName().equals(ingredientName))
+                .get();
+        if (ingredient != null) {
+            ingredient.setQuantity(quantity);
+            ingredientRepo.save(ingredient);
+        } else {
+            //Message to user/log
+        }
     }
 
-    
-    private Recipe getRecipe() {
-        return em.find(Recipe.class, recipeName);
+    @Transactional
+    public void removeIngredientFromRecipe() {
+//        Recipe recipe = recipeRepo.findBy(selectedRecipe);
+        Ingredient ingredient = ingredientRepo.findBy(new IngredientKey(recipeName, itemName));
+//        recipe.getIngredients().remove(ingredient);
+//        recipeRepo.save(recipe);
+        ingredientRepo.remove(ingredient);
     }
-    
+
+    @Transactional
+    public void deleteRecipe() {
+        Recipe recipe = recipeRepo.findBy(selectedRecipe);
+        ingredientRepo.removeAll(recipe.getIngredients());
+        recipeRepo.remove(recipe);
+        
+    }
+
     public String getRecipeName() {
         return recipeName;
     }

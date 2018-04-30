@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <p:layoutUnit position="center">    
+        <h:form>
+            <p:button value="New Item">
+
+            </p:button>
+            <br/>
+            <p:dataTable var="item" value="#{inventoryBean.items}">
+                <p:column headerText="Name">
+                    <h:outputText value="#{item.name}"/>
+                </p:column>
+                <p:column headerText="Quantity">
+                    <h:outputText value="#{item.quantity}"/>
+                </p:column>
+                <p:column headerText="Units">
+                    <h:outputText value="#{item.units}"/>
+                </p:column>
+                <p:column>
+                    <p:button value="Add quantity"></p:button>
+                </p:column>
+                <p:column>
+                    <p:button value="Remove quantity"></p:button>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </p:layoutUnit>
+</ui:composition>

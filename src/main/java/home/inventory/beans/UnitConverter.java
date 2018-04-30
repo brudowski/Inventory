@@ -1,4 +1,4 @@
-package home.inventory;
+package home.inventory.beans;
 
 import home.inventory.enums.Unit;
 import home.inventory.exception.InvalidConversionException;

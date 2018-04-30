@@ -81,4 +81,8 @@ public class Item implements Serializable {
         return true;
     }
     
+    @Override
+    public String toString() {
+        return name;
+    }
 }

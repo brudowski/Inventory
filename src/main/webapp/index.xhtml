@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <h:head>
+        <title>Pantry Manager</title>
+        <ui:insert name="header"/>
+    </h:head>
+    <h:body>
+        <p:layout id="pageLayout" fullPage="true">
+            <p:layoutUnit position="north" size="100">
+                <ui:include src="header.xhtml"/>
+            </p:layoutUnit>
+            <p:layoutUnit position="center">
+                <ui:insert/>
+            </p:layoutUnit>
+        </p:layout>
+        <p:growl autoUpdate="true" life="10000" showDetail="true"/>
+    </h:body>
+                  
+
+</html>
