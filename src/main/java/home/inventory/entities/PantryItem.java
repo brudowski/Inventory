@@ -13,7 +13,7 @@ import javax.persistence.OneToMany;
  * @author BRudowski
  */
 @Entity
-public class Item implements Serializable {
+public class PantryItem implements Serializable {
     
     private static final long serialVersionUID = 1L;
     @Id
@@ -23,10 +23,10 @@ public class Item implements Serializable {
     @OneToMany(mappedBy="item")
     private final List<Ingredient> ingredients = new ArrayList<>();
 
-    public Item() {
+    public PantryItem() {
     }
 
-    public Item(String name, double quantity, String units) {
+    public PantryItem(String name, double quantity, String units) {
         this.name = name;
         this.quantity = quantity;
         this.units = units;
@@ -74,7 +74,7 @@ public class Item implements Serializable {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Item other = (Item) obj;
+        final PantryItem other = (PantryItem) obj;
         if (!Objects.equals(this.name, other.name)) {
             return false;
         }

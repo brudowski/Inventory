@@ -1,32 +1,40 @@
 package home.inventory.beans;
 
-import home.inventory.entities.Item;
+import home.inventory.entities.PantryItem;
 import home.inventory.repos.ItemRepo;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.application.FacesMessage.Severity;
+import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.transaction.Transactional;
+import org.apache.deltaspike.jpa.api.transaction.Transactional;
 
 /**
  *
  * @author BRudowski
  */
-@ApplicationScoped
 @Named
-public class InventoryBean {
+@SessionScoped
+public class InventoryBean implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Inject
     private ItemRepo itemRepo;
-    private final List<Item> items = new ArrayList<>();
+    @Inject
+    private DatabaseBean dbBean;
+    private final List<PantryItem> items = new ArrayList<>();
     private String name;
     private double quantity;
     private String units;
     private double quantityModifier; //used to store how much should be added or removed from an item
     private String selected;
 
-    private void clear() {
+    public void clear() {
         name = "";
         quantity = 0;
         units = "";
@@ -37,32 +45,40 @@ public class InventoryBean {
     @Transactional
     public void createItem() {
         if (itemRepo.findBy(name) == null) {
-            Item item = new Item(name, quantity, units);
+            PantryItem item = new PantryItem(name, quantity, units);
             itemRepo.save(item);
+            fctx().addMessage(null, new FacesMessage("Success", "Created Item " + name));
             clear();
+            refreshItems();
         } else {
-            //send some warning/error message to the user
+            fctx().addMessage(null, new FacesMessage("Failure", "An item with that name already exists"));
+        }
+    }
+
+    private void modifyItemQuantity(double modifier) {
+        PantryItem item = itemRepo.findBy(name);
+        if (item != null) {
+            item.setQuantity(item.getQuantity() + modifier);
+            itemRepo.save(item);
+            fctx().addMessage(null, new FacesMessage("Success", "Added Item " + name));
+            clear();
+            refreshItems();
         }
     }
 
     @Transactional
-    private void modifyItemQuantity(double modifier) {
-        Item item = itemRepo.findBy(name);
-        item.setQuantity(item.getQuantity() + modifier);
-        itemRepo.save(item);
-    }
-
     public void addQuantity() {
         modifyItemQuantity(quantityModifier);
     }
 
+    @Transactional
     public void removeQuantity() {
         modifyItemQuantity(-quantityModifier);
     }
 
     @Transactional
     public void deleteItem() {
-        Item item = itemRepo.findBy(name);
+        PantryItem item = itemRepo.findBy(name);
         //need some query to check that an item isn't part of a recipe
         itemRepo.remove(item);
     }
@@ -107,8 +123,17 @@ public class InventoryBean {
         this.selected = selected;
     }
 
-    public List<Item> getItems() {
+    public List<PantryItem> getItems() {
         return items;
     }
 
+    private FacesContext fctx() {
+        return FacesContext.getCurrentInstance();
+    }
+
+    @Transactional
+    public void refreshItems() {
+        items.clear();
+        items.addAll(itemRepo.findAll());
+    }
 }

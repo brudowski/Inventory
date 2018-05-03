@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:p="http://primefaces.org/ui"
-                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+                xmlns:ui="http://java.sun.com/jsf/facelets">
 
     <h:head>
         <title>Pantry Manager</title>
@@ -17,7 +17,7 @@
                 <ui:insert/>
             </p:layoutUnit>
         </p:layout>
-        <p:growl autoUpdate="true" life="10000" showDetail="true"/>
+        <p:growl id="growl" life="10000" showDetail="true"/>
     </h:body>
                   
 

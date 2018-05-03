@@ -6,12 +6,13 @@ import java.sql.Connection;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.transaction.TransactionScoped;
+import org.apache.deltaspike.jpa.api.transaction.TransactionScoped;
 import liquibase.Liquibase;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
@@ -23,29 +24,30 @@ import org.hsqldb.DatabaseManager;
  *
  * @author BRudowski
  */
-@Named
+@ApplicationScoped
 public class DatabaseBean {
 
     private EntityManagerFactory emf;
 
+    public DatabaseBean() {
+    }
+
     @Produces
     @TransactionScoped
     public EntityManager em() {
+        if (emf == null) {
+            configureDb();
+        }
         return emf.createEntityManager();
     }
-    
-    @PostConstruct
-    public void init() {
-        configureDB();
-    }
-    
+
     @PreDestroy
     public void dispose() {
         emf.close();
         DatabaseManager.closeDatabases(0);
     }
 
-    private void configureDB() {
+    private void configureDb() {
         Path basePath = Paths.get(System.getProperty("java.io.tmpdir")).getParent().resolve("inventory").toAbsolutePath();
         String dbUrl = "jdbc:hsqldb:file:" + basePath.resolve("db").toString() + "/inventory;"
                 + "hsqldb.cache_rows=10000;hsqldb.nio_data_file=false;hsqldb.default_table_type=cached;hsqldb.tx=mvcc";
@@ -69,7 +71,7 @@ public class DatabaseBean {
         } finally {
             em.close();
         }
-        
+
     }
 
     private Liquibase getLiquibase(Connection conn) throws LiquibaseException {

@@ -18,7 +18,7 @@ public class Ingredient implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @ManyToOne
-    private Item item;
+    private PantryItem item;
     private double quantity;
     @Id
     @ManyToOne
@@ -27,17 +27,17 @@ public class Ingredient implements Serializable {
     public Ingredient() {
     }
 
-    public Ingredient(Item item, double quantity, Recipe recipe) {
+    public Ingredient(PantryItem item, double quantity, Recipe recipe) {
         this.item = item;
         this.quantity = quantity;
         this.recipe = recipe;
     }
     
-    public Item getItem() {
+    public PantryItem getItem() {
         return item;
     }
 
-    public void setItem(Item item) {
+    public void setItem(PantryItem item) {
         this.item = item;
     }
 

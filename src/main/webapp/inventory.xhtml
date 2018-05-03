@@ -2,31 +2,66 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:p="http://primefaces.org/ui"
-                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="templates/index.xhtml"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
 
-    <p:layoutUnit position="center">    
-        <h:form>
-            <p:button value="New Item">
+    <f:metadata>
+        <f:viewAction action="#{inventoryBean.refreshItems}"/>
+    </f:metadata>
+    <h:form id="tableForm">
+        <p:commandButton value="New Item" onclick="#{p:widgetVar('newItemForm:newItemDlg')}.show()"/>
+        <br/>
+        <p:dataTable var="item" value="#{inventoryBean.items}">
+            <p:column headerText="Name">
+                <h:outputText value="#{item.name}"/>
+            </p:column>
+            <p:column headerText="Quantity">
+                <h:outputText value="#{item.quantity}"/>
+            </p:column>
+            <p:column headerText="Units">
+                <h:outputText value="#{item.units}"/>
+            </p:column>
+            <p:column>
+                <p:commandButton value="Add quantity" onclick="#{p:widgetVar('qtyForm:addQtyDlg')}.show()"/>
+            </p:column>
+            <p:column>
+                <p:commandButton value="Remove quantity" onclick="#{p:widgetVar('qtyForm:rmvQtyDlg')}.show"/>
+            </p:column>
+        </p:dataTable>
+    </h:form>
 
-            </p:button>
-            <br/>
-            <p:dataTable var="item" value="#{inventoryBean.items}">
-                <p:column headerText="Name">
-                    <h:outputText value="#{item.name}"/>
-                </p:column>
-                <p:column headerText="Quantity">
-                    <h:outputText value="#{item.quantity}"/>
-                </p:column>
-                <p:column headerText="Units">
-                    <h:outputText value="#{item.units}"/>
-                </p:column>
-                <p:column>
-                    <p:button value="Add quantity"></p:button>
-                </p:column>
-                <p:column>
-                    <p:button value="Remove quantity"></p:button>
-                </p:column>
-            </p:dataTable>
-        </h:form>
-    </p:layoutUnit>
+    <h:form id="newItemForm">
+        <p:dialog id="newItemDlg" closable="false">
+            <p:panelGrid columns="2">
+                <h:outputText value="Item Name"/><p:inputText value="#{inventoryBean.name}"/>
+                <h:outputText value="Quantity"/><p:inputNumber value="#{inventoryBean.quantity}"/>
+                <h:outputText value="Units"/><p:inputText value="#{inventoryBean.units}"/>
+                <p:commandButton value="Create Item" actionListener="#{inventoryBean.createItem}" 
+                                 oncomplete="#{p:widgetVar('newItemForm:newItemDlg')}.hide()" update=":tableForm :growl"/>
+                <p:commandButton value="Cancel" actionListener="#{inventoryBean.clear}" 
+                                 oncomplete="#{p:widgetVar('newItemForm:newItemDlg')}.hide()"/>
+            </p:panelGrid>
+        </p:dialog>
+    </h:form>
+    <h:form id="qtyForm">
+        <p:dialog id="addQtyDlg" closable="false">
+            <p:panelGrid columns="2">
+                <h:outputText value="Quantity to add"/><p:inputNumber value="#{inventoryBean.quantityModifier}"/>
+                <p:commandButton value="Submit" actionListener="#{inventoryBean.addQuantity}" 
+                                 oncomplete="#{p:widgetVar('qtyForm:addQtyDlg')}.hide()" update=":tableForm :growl"/>
+                <p:commandButton value="Cancel" actionListener="#{inventoryBean.clear}" 
+                                 oncomplete="#{p:widgetVar('qtyForm:addQtyDlg')}.hide()"/>
+            </p:panelGrid>
+        </p:dialog>
+        <p:dialog id="rmvQtyDlg" closable="false">
+            <p:panelGrid columns="2">
+                <h:outputText value="Quantity to remove"/><p:inputNumber value="#{inventoryBean.quantityModifier}"/>
+                <p:commandButton value="Submit" actionListener="#{inventoryBean.removeQuantity}" 
+                                 oncomplete="#{p:widgetVar('qtyForm:rmvQtyDlg')}.hide()" update=":tableForm :growl"/>
+                <p:commandButton value="Cancel" actionListener="#{inventoryBean.clear}" 
+                                 oncomplete="#{p:widgetVar('qtyForm:rmvQtyDlg')}.hide()"/>
+            </p:panelGrid>
+        </p:dialog>
+    </h:form>
 </ui:composition>

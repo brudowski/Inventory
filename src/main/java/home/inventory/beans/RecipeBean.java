@@ -2,25 +2,30 @@ package home.inventory.beans;
 
 import home.inventory.entities.Ingredient;
 import home.inventory.entities.IngredientKey;
-import home.inventory.entities.Item;
+import home.inventory.entities.PantryItem;
 import home.inventory.entities.Recipe;
 import home.inventory.enums.Unit;
 import home.inventory.repos.IngredientRepo;
 import home.inventory.repos.ItemRepo;
 import home.inventory.repos.RecipeRepo;
 import io.vavr.collection.Stream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.transaction.Transactional;
+import org.apache.deltaspike.jpa.api.transaction.Transactional;
 
 /**
  *
  * @author BRudowski
  */
 @Named
-public class RecipeBean {
+@SessionScoped
+public class RecipeBean implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     private final List<Recipe> recipes = new ArrayList<>();
     @Inject
@@ -45,9 +50,9 @@ public class RecipeBean {
     @Transactional
     public void addIngredientToRecipe() {
         Recipe recipe = recipeRepo.findBy(selectedRecipe);
-        Item item = itemRepo.findBy(selectedItem);
+        PantryItem item = itemRepo.findBy(selectedItem);
         if (item == null) {
-            item = new Item(itemName, 0.0, unit);
+            item = new PantryItem(itemName, 0.0, unit);
             itemRepo.save(item);
         } else {
             //check if the units can be converted
@@ -71,7 +76,7 @@ public class RecipeBean {
     @Transactional
     public void updateIngredientQuantity() {
         Recipe recipe = recipeRepo.findBy(selectedRecipe);
-        Item item = itemRepo.findBy(selectedItem);
+        PantryItem item = itemRepo.findBy(selectedItem);
         final String ingredientName = item.getName();
         Ingredient ingredient = Stream.ofAll(recipe.getIngredients())
                 .filter(i -> i.getItem().getName().equals(ingredientName))
