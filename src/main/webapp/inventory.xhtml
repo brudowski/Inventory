@@ -6,13 +6,13 @@
                 template="templates/index.xhtml"
                 xmlns:f="http://xmlns.jcp.org/jsf/core">
 
-    <f:metadata>
-        <f:viewAction action="#{inventoryBean.refreshItems}"/>
-    </f:metadata>
+
     <h:form id="tableForm">
         <p:commandButton value="New Item" onclick="#{p:widgetVar('newItemForm:newItemDlg')}.show()"/>
         <br/>
-        <p:dataTable var="item" value="#{inventoryBean.items}">
+        <p:dataTable var="item" value="#{inventoryBean.items}" paginator="true" 
+                     paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                     rowsPerPageTemplate="30" id="itemTable" lazy="true" selectionMode="single" selection="#{inventoryBean.selected}">
             <p:column headerText="Name">
                 <h:outputText value="#{item.name}"/>
             </p:column>
@@ -23,10 +23,14 @@
                 <h:outputText value="#{item.units}"/>
             </p:column>
             <p:column>
-                <p:commandButton value="Add quantity" onclick="#{p:widgetVar('qtyForm:addQtyDlg')}.show()"/>
+                <p:commandButton value="Add quantity" onclick="#{p:widgetVar('qtyForm:addQtyDlg')}.show()">
+                    <f:setPropertyActionListener value="#{item.name}" target="#{inventoryBean.selected}"/>
+                </p:commandButton>
             </p:column>
             <p:column>
-                <p:commandButton value="Remove quantity" onclick="#{p:widgetVar('qtyForm:rmvQtyDlg')}.show"/>
+                <p:commandButton value="Remove quantity" onclick="#{p:widgetVar('qtyForm:rmvQtyDlg')}.show">
+                    <f:setPropertyActionListener value="#{item.name}" target="#{inventoryBean.selected}"/>
+                </p:commandButton>
             </p:column>
         </p:dataTable>
     </h:form>

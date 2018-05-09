@@ -8,6 +8,6 @@ import org.apache.deltaspike.data.api.Repository;
  * @author BRudowski
  */
 @Repository
-public interface ItemRepo extends InventoryRepository<PantryItem, String>{
+public interface PantryItemRepo extends InventoryRepository<PantryItem, String>{
     
 }

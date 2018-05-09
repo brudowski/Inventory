@@ -6,7 +6,6 @@ import home.inventory.entities.PantryItem;
 import home.inventory.entities.Recipe;
 import home.inventory.enums.Unit;
 import home.inventory.repos.IngredientRepo;
-import home.inventory.repos.ItemRepo;
 import home.inventory.repos.RecipeRepo;
 import io.vavr.collection.Stream;
 import java.io.Serializable;
@@ -16,6 +15,7 @@ import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.apache.deltaspike.jpa.api.transaction.Transactional;
+import home.inventory.repos.PantryItemRepo;
 
 /**
  *
@@ -31,7 +31,7 @@ public class RecipeBean implements Serializable {
     @Inject
     private RecipeRepo recipeRepo;
     @Inject
-    private ItemRepo itemRepo;
+    private PantryItemRepo itemRepo;
     @Inject
     private IngredientRepo ingredientRepo;
     private String recipeName;

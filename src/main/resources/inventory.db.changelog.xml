@@ -4,7 +4,7 @@
     xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
-    <changeSet id="INITIAL PANTRY SCHEMA" author="Brian Rudowski">
+    <changeSet id="INITIAL_PANTRY_SCHEMA" author="Brian Rudowski">
         <createTable tableName="PANTRYITEM">
             <column name="NAME" type="java.sql.Types.VARCHAR(255)">
                 <constraints primaryKey="true" nullable="false" primaryKeyName="PK_PANTRYITEM"/>

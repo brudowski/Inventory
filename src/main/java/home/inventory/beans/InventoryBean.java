@@ -1,17 +1,19 @@
 package home.inventory.beans;
 
 import home.inventory.entities.PantryItem;
-import home.inventory.repos.ItemRepo;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
-import javax.faces.application.FacesMessage.Severity;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.apache.deltaspike.jpa.api.transaction.Transactional;
+import home.inventory.repos.PantryItemRepo;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.primefaces.model.LazyDataModel;
+import org.primefaces.model.SortOrder;
 
 /**
  *
@@ -24,22 +26,37 @@ public class InventoryBean implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Inject
-    private ItemRepo itemRepo;
+    private PantryItemRepo itemRepo;
     @Inject
-    private DatabaseBean dbBean;
-    private final List<PantryItem> items = new ArrayList<>();
+    private DatabaseBean dbBean; //must be injected for the em to get its initial context
     private String name;
     private double quantity;
     private String units;
     private double quantityModifier; //used to store how much should be added or removed from an item
-    private String selected;
+    private PantryItem selected;
+    private final List<PantryItem> itemList = new ArrayList<>();
+
+    private final LazyDataModel<PantryItem> items = new LazyDataModel<PantryItem>() {
+            @Override
+            public List<PantryItem> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, Object> filters) {
+                List<PantryItem> items = itemRepo.findAll().subList(first, pageSize);
+
+                return items;
+            }
+        };;
+
+    //ToDo: Figure out why this won't pick up a TransactionContext
+//    @Transactional
+//    private void initDataTable() {
+//        items 
+//    }
 
     public void clear() {
         name = "";
         quantity = 0;
         units = "";
         quantityModifier = 0;
-        selected = "";
+        selected = null;
     }
 
     @Transactional
@@ -49,7 +66,7 @@ public class InventoryBean implements Serializable {
             itemRepo.save(item);
             fctx().addMessage(null, new FacesMessage("Success", "Created Item " + name));
             clear();
-            refreshItems();
+//            refreshItems();
         } else {
             fctx().addMessage(null, new FacesMessage("Failure", "An item with that name already exists"));
         }
@@ -62,7 +79,7 @@ public class InventoryBean implements Serializable {
             itemRepo.save(item);
             fctx().addMessage(null, new FacesMessage("Success", "Added Item " + name));
             clear();
-            refreshItems();
+//            refreshItems();
         }
     }
 
@@ -115,15 +132,15 @@ public class InventoryBean implements Serializable {
         this.quantityModifier = quantityModifier;
     }
 
-    public String getSelected() {
+    public PantryItem getSelected() {
         return selected;
     }
 
-    public void setSelected(String selected) {
+    public void setSelected(PantryItem selected) {
         this.selected = selected;
     }
 
-    public List<PantryItem> getItems() {
+    public LazyDataModel<PantryItem> getItems() {
         return items;
     }
 
@@ -131,9 +148,10 @@ public class InventoryBean implements Serializable {
         return FacesContext.getCurrentInstance();
     }
 
-    @Transactional
-    public void refreshItems() {
-        items.clear();
-        items.addAll(itemRepo.findAll());
-    }
+//    @Transactional
+//    public void refreshItems() {
+//        itemList.clear();
+//        itemList.addAll(itemRepo.findAll());
+//        initDataTable();
+//    }
 }
