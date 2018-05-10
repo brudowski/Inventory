@@ -4,7 +4,7 @@
 
     <groupId>home</groupId>
     <artifactId>Inventory</artifactId>
-    <version>0.4</version>
+    <version>0.5</version>
     <packaging>war</packaging>
 
     <name>Inventory</name>

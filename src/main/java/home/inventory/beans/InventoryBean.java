@@ -1,5 +1,6 @@
 package home.inventory.beans;
 
+import home.inventory.beans.data.PantryItemLazyLoader;
 import home.inventory.entities.PantryItem;
 import java.io.Serializable;
 import javax.enterprise.context.SessionScoped;
@@ -11,9 +12,7 @@ import org.apache.deltaspike.jpa.api.transaction.Transactional;
 import home.inventory.repos.PantryItemRepo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.primefaces.model.LazyDataModel;
-import org.primefaces.model.SortOrder;
 
 /**
  *
@@ -27,29 +26,13 @@ public class InventoryBean implements Serializable {
 
     @Inject
     private PantryItemRepo itemRepo;
-    @Inject
-    private DatabaseBean dbBean; //must be injected for the em to get its initial context
     private String name;
     private double quantity;
     private String units;
     private double quantityModifier; //used to store how much should be added or removed from an item
-    private PantryItem selected;
-    private final List<PantryItem> itemList = new ArrayList<>();
-
-    private final LazyDataModel<PantryItem> items = new LazyDataModel<PantryItem>() {
-            @Override
-            public List<PantryItem> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, Object> filters) {
-                List<PantryItem> items = itemRepo.findAll().subList(first, pageSize);
-
-                return items;
-            }
-        };;
-
-    //ToDo: Figure out why this won't pick up a TransactionContext
-//    @Transactional
-//    private void initDataTable() {
-//        items 
-//    }
+    private String selected;
+    @Inject
+    private PantryItemLazyLoader items;
 
     public void clear() {
         name = "";
@@ -66,21 +49,32 @@ public class InventoryBean implements Serializable {
             itemRepo.save(item);
             fctx().addMessage(null, new FacesMessage("Success", "Created Item " + name));
             clear();
-//            refreshItems();
         } else {
             fctx().addMessage(null, new FacesMessage("Failure", "An item with that name already exists"));
         }
     }
 
     private void modifyItemQuantity(double modifier) {
-        PantryItem item = itemRepo.findBy(name);
+        PantryItem item = itemRepo.findBy(selected);
+        String action = "";
+        String result = "Error";
         if (item != null) {
-            item.setQuantity(item.getQuantity() + modifier);
-            itemRepo.save(item);
-            fctx().addMessage(null, new FacesMessage("Success", "Added Item " + name));
-            clear();
-//            refreshItems();
+            if (modifier + item.getQuantity() >= 0) {
+                item.setQuantity(item.getQuantity() + modifier);
+                itemRepo.save(item);
+                result = "Success";
+                action += modifier > 0 ? "Added " : "Removed "
+                        + String.valueOf(Math.abs(modifier)) + " "
+                        + item.getUnits() + (modifier > 0 ? " to " : " from ")
+                        + item.getName();
+                clear();
+            } else {
+                action = "Cannot remove more " + item.getUnits() + "(s) than what is there for " + item.getName();
+            }
+        } else {
+            action = "Unable to modify item quantity";
         }
+        fctx().addMessage(null, new FacesMessage(result, action));
     }
 
     @Transactional
@@ -95,7 +89,7 @@ public class InventoryBean implements Serializable {
 
     @Transactional
     public void deleteItem() {
-        PantryItem item = itemRepo.findBy(name);
+        PantryItem item = itemRepo.findBy(selected);
         //need some query to check that an item isn't part of a recipe
         itemRepo.remove(item);
     }
@@ -132,11 +126,11 @@ public class InventoryBean implements Serializable {
         this.quantityModifier = quantityModifier;
     }
 
-    public PantryItem getSelected() {
+    public String getSelected() {
         return selected;
     }
 
-    public void setSelected(PantryItem selected) {
+    public void setSelected(String selected) {
         this.selected = selected;
     }
 
@@ -147,11 +141,4 @@ public class InventoryBean implements Serializable {
     private FacesContext fctx() {
         return FacesContext.getCurrentInstance();
     }
-
-//    @Transactional
-//    public void refreshItems() {
-//        itemList.clear();
-//        itemList.addAll(itemRepo.findAll());
-//        initDataTable();
-//    }
 }

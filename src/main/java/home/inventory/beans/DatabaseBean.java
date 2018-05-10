@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.Properties;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Disposes;
@@ -52,10 +51,6 @@ public class DatabaseBean {
         em.close();
     }
 
-    @PostConstruct
-    public void init() {
-        configureDb();
-    }
     private void configureDb() {
         Path basePath = Paths.get(System.getProperty("java.io.tmpdir")).getParent().resolve("inventory").toAbsolutePath();
         String dbUrl = "jdbc:hsqldb:file:" + basePath.resolve("db").toString() + "/inventory;"
@@ -77,7 +72,6 @@ public class DatabaseBean {
             em.getTransaction().commit();
         } catch (LiquibaseException ex) {
             //TODO: Replace with a real logging statement
-            ex.printStackTrace();
         } finally {
             em.close();
         }
