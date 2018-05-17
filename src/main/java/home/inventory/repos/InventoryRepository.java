@@ -10,7 +10,7 @@ import org.apache.deltaspike.data.api.criteria.CriteriaSupport;
  * @param <E> An entity class
  * @param <PK> The primary key of the entity class
  */
-public interface InventoryRepository<E, PK extends Serializable> extends EntityRepository<E, PK>, CriteriaSupport<E> {
+public interface InventoryRepository<E, PK extends Serializable> extends EntityRepository<E, PK>, CriteriaSupport<E>, Clearable {
 
     default void saveAll(Iterable<? extends E> items) {
         items.forEach(this::save);

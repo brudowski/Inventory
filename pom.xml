@@ -8,6 +8,13 @@
     <packaging>war</packaging>
 
     <name>Inventory</name>
+    <repositories>
+        <repository>
+            <id>themes</id>
+            <name>Primefaces Themes</name>
+            <url>https://repository.primefaces.org/</url>
+        </repository>
+    </repositories>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -30,6 +37,11 @@
             <groupId>org.primefaces</groupId>
             <artifactId>primefaces</artifactId>
             <version>6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.primefaces.themes</groupId>
+            <artifactId>all-themes</artifactId>
+            <version>1.0.10</version>
         </dependency>
         <dependency>
             <groupId>org.hsqldb</groupId>
@@ -106,7 +118,6 @@
             <version>${deltaspike.version}</version>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.deltaspike.modules</groupId>
             <artifactId>deltaspike-partial-bean-module-impl</artifactId>

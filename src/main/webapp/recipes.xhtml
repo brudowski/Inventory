@@ -4,19 +4,82 @@
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
-                template="templates/index.xhtml">
-    <h:form id="recipeList">
-        <p:accordionPanel value="#{recipeBean.recipes}" var="recipe">
-            <p:tab title="#{recipe.name}">
-                <p:dataTable value="#{recipe.ingredients}" var="ingredient">
-                    <p:column headerText="Ingredient Name">
-                        <h:outputText value="#{ingredient.item.name}"/>
-                    </p:column>
-                    <p:column headerText="Ingredient Quantity">
-                        <h:outputText value="#{ingredient.quantity}"/>
+                template="templates/index.xhtml"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="extraLayouts">
+        <p:layoutUnit position="west" size="300" collapsible="true" resizable="true" minSize="250">
+            <h:form id="tableForm">
+                <p:commandButton value="New Recipe" onclick="#{p:widgetVar('newRecipeForm:newRecipeDlg')}.show()"/>
+                <br/>
+                <p:dataTable var="recipe" value="#{recipeBean.recipes}" paginator="true" rows="30" selectionMode="single"
+                             paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+                             id="recipeTable" lazy="true" selection="#{recipeBean.recipe}">
+                    <p:ajax event="rowSelect" update=":infoForm"/>
+                    <p:column headerText="Name">
+                        <h:outputText value="#{recipe.name}"/>
                     </p:column>
                 </p:dataTable>
-            </p:tab>
-        </p:accordionPanel>
+            </h:form>
+        </p:layoutUnit>
+    </ui:define>
+
+
+    <h:form id="infoForm">
+        <h:outputText id="noRecipe" value="No Recipe Selected" style="text-align: center; " rendered="#{recipeBean.selectedRecipe==null}"/>
+        <h:outputText value="Ingredient List for #{recipeBean.selectedRecipe.name}" rendered="#{recipeBean.selectedRecipe!=null}"/>
+        <br/><br/>
+        <p:menuButton value="Options" rendered="#{recipeBean.selectedRecipe!=null}">
+            <p:menuitem value="Add Ingredient" onclick="#{p:widgetVar('newIngForm:newIngDlg')}.show()" icon="ui-icon-plus"/>
+            <p:menuitem value="Cook Recipe" actionListener="#{recipeBean.makeRecipe}" disabled="#{recipeBean.canMakeRecipe()}"/>
+            <p:menuitem value="Delete Recipe" onclick="#{p:widgetVar('dltForm:dltDlg')}.show()" icon="ui-icon-close"/>
+        </p:menuButton>
+        <p:dataTable id="infoTable" var="ingredient" value="#{recipeBean.selectedRecipe.ingredients}" rendered="#{recipeBean.selectedRecipe!=null}">
+            <p:column headerText="Ingredient Name">
+                <h:outputText value="#{ingredient.item.name}"/>
+            </p:column>
+            <p:column headerText="Quantity to Use">
+                <h:outputText value="#{ingredient.quantity}"/>
+            </p:column>
+            <p:column headerText="Units">
+                <h:outputText value="#{ingredient.item.units}"/>
+            </p:column>
+            <p:column headerText="Available in Pantry">
+                <h:outputText value="#{ingredient.item.quantity}"/>
+            </p:column>
+        </p:dataTable>
+    </h:form>
+
+    <h:form id="newIngForm">
+        <p:dialog id="newIngDlg" closable="false">
+            <p:panelGrid columns="2">
+                <h:outputText value="Ingredient Name"/><p:inputText value="#{recipeBean.itemName}"/>
+                <h:outputText value="Quantity to Use"/><p:inputNumber value="#{recipeBean.quantity}" minValue="0"/>
+                <h:outputText value="Units"/><p:inputText value="#{recipeBean.unit}"/>
+                <p:commandButton value="Add Ingredient" actionListener="#{recipeBean.addIngredientToRecipe()}" 
+                                 oncomplete="#{p:widgetVar('newIngForm:newIngDlg')}.hide();" update=":infoForm :growl :newIngForm"/>
+                <p:commandButton value="Cancel" oncomplete="#{p:widgetVar('newIngForm:newIngDlg')}.hide()"/>
+            </p:panelGrid>
+        </p:dialog>
+    </h:form>
+
+    <h:form id="newRecipeForm">
+        <p:dialog id="newRecipeDlg" closable="false">
+            <p:panelGrid columns="2">
+                <h:outputText value="Recipe Name"/><p:inputText value="#{recipeBean.recipeName}"/>
+                <p:commandButton value="Create Recipe" actionListener="#{recipeBean.createRecipe}" 
+                                 oncomplete="#{p:widgetVar('newRecipeForm:newRecipeDlg')}.hide();" update=":tableForm :infoForm :growl"/>
+                <p:commandButton value="Cancel" oncomplete="#{p:widgetVar('newRecipeForm:newRecipeDlg')}.hide()"/>
+            </p:panelGrid>
+        </p:dialog>
+    </h:form>
+
+    <h:form id="dltForm">
+        <p:dialog id="dltDlg" closable="false" header="Please confirm deletion">
+            <p:panelGrid columns="2" style="border: 0;">
+                <p:commandButton value="Submit" actionListener="#{recipeBean.deleteRecipe}" 
+                                 oncomplete="#{p:widgetVar('dltForm:dltDlg')}.hide()" update=":tableForm :infoForm :growl"/>
+                <p:commandButton value="Cancel" oncomplete="#{p:widgetVar('dltForm:dltDlg')}.hide()"/>
+            </p:panelGrid>
+        </p:dialog>
     </h:form>
 </ui:composition>

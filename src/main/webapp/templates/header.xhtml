@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:p="http://primefaces.org/ui"
-                xmlns:ui="http://java.sun.com/jsf/facelets">
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
 
 
-        <h:form>
-            <p:button value="View Inventory" outcome="inventory.jsf"/>
-            <p:button value="View Recipes" outcome="recipes.jsf"/>
-        </h:form>
+    <p:tabMenu activeIndex="#{param.i}">
+        <p:menuitem value="View Inventory" outcome="inventory.jsf">
+            <f:param name="i" value="0"/>
+        </p:menuitem>
+        <p:menuitem value="View Recipes" outcome="recipes.jsf">
+            <f:param name="i" value="1"/>
+        </p:menuitem>
+        </p:tabMenu>
 
 </ui:composition>

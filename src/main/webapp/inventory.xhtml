@@ -8,11 +8,18 @@
 
 
     <h:form id="tableForm">
-        <p:commandButton value="New Item" onclick="#{p:widgetVar('newItemForm:newItemDlg')}.show()"/>
+        <p:menuButton value="Options">
+            <p:menuitem value="New Item" onclick="#{p:widgetVar('newItemForm:newItemDlg')}.show()"/>
+            <p:menuitem value="Add quantity" onclick="#{p:widgetVar('addQtyForm:addQtyDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
+            <p:menuitem value="Remove quantity" onclick="#{p:widgetVar('rmvQtyForm:rmvQtyDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
+            <p:menuitem value="Update units" onclick="#{p:widgetVar('unitForm:unitDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
+            <p:menuitem value="Delete" onclick="#{p:widgetVar('deleteForm:deleteDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
+        </p:menuButton>
         <br/>
-        <p:dataTable var="item" value="#{inventoryBean.items}" paginator="true" rows="30" 
+        <p:dataTable var="item" value="#{inventoryBean.items}" paginator="true" rows="30" selectionMode="single"
                      paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
-                     id="itemTable" lazy="true" resizableColumns="true">
+                     id="itemTable" lazy="true" resizableColumns="true" selection="#{inventoryBean.selected}">
+            <p:ajax event="rowSelect" update=":tableForm :addQtyForm :rmvQtyForm :deleteForm :unitForm"/>
             <p:column headerText="Name">
                 <h:outputText value="#{item.name}"/>
             </p:column>
@@ -21,21 +28,6 @@
             </p:column>
             <p:column headerText="Units">
                 <h:outputText value="#{item.units}"/>
-            </p:column>
-            <p:column>
-                <p:commandButton value="Add quantity" onclick="#{p:widgetVar('addQtyForm:addQtyDlg')}.show()">
-                    <f:setPropertyActionListener value="#{item.name}" target="#{inventoryBean.selected}"/>
-                </p:commandButton>
-            </p:column>
-            <p:column>
-                <p:commandButton value="Remove quantity" onclick="#{p:widgetVar('rmvQtyForm:rmvQtyDlg')}.show()">
-                    <f:setPropertyActionListener value="#{item.name}" target="#{inventoryBean.selected}"/>
-                </p:commandButton>
-            </p:column>
-            <p:column>
-                <p:commandButton value="Delete" onclick="#{p:widgetVar('deleteForm:deleteDlg')}.show()">
-                    <f:setPropertyActionListener value="#{item.name}" target="#{inventoryBean.selected}"/>
-                </p:commandButton>
             </p:column>
         </p:dataTable>
     </h:form>
@@ -54,7 +46,7 @@
         </p:dialog>
     </h:form>
     <h:form id="addQtyForm">
-        <p:dialog id="addQtyDlg" closable="false">
+        <p:dialog id="addQtyDlg" closable="false" header="#{inventoryBean.selected.name}">
             <p:panelGrid columns="2">
                 <h:outputText value="Quantity to add"/><p:inputNumber value="#{inventoryBean.quantityModifier}" minValue="0"/>
                 <p:commandButton value="Submit" actionListener="#{inventoryBean.addQuantity}" 
@@ -65,7 +57,7 @@
         </p:dialog>
     </h:form>
     <h:form id="rmvQtyForm">
-        <p:dialog id="rmvQtyDlg" closable="false">
+        <p:dialog id="rmvQtyDlg" closable="false" header="#{inventoryBean.selected.name}">
             <p:panelGrid columns="2">
                 <h:outputText value="Quantity to remove"/><p:inputNumber value="#{inventoryBean.quantityModifier}" minValue="0"/>
                 <p:commandButton value="Submit" actionListener="#{inventoryBean.removeQuantity}" 
@@ -76,12 +68,26 @@
         </p:dialog>
     </h:form>
     <h:form id="deleteForm">
-        <p:dialog id="deleteDlg" closable="false" header="Please confirm deletion">
+        <p:dialog id="deleteDlg" closable="false" header="Please confirm deletion of #{inventoryBean.selected.name}">
             <p:panelGrid columns="2" style="border-width: 0">
                 <p:commandButton value="Submit" actionListener="#{inventoryBean.deleteItem}" 
                                  oncomplete="#{p:widgetVar('deleteForm:deleteDlg')}.hide()" update=":tableForm :growl"/>
                 <p:commandButton value="Cancel" actionListener="#{inventoryBean.clear}" 
                                  oncomplete="#{p:widgetVar('deleteForm:deleteDlg')}.hide()"/>
+            </p:panelGrid>
+        </p:dialog>
+    </h:form>
+    <h:form id="unitForm">
+        <p:dialog id="unitDlg" closable="false" header="Update Units for #{inventoryBean.selected.name}">
+            <p:panelGrid columns="2" style="border:0;">
+                <h:outputText value="Current unit name"/>
+                <h:outputText value="#{inventoryBean.selected.units}"/>
+                <h:outputText value="New unit name"/>
+                <p:inputText value="#{inventoryBean.units}"/>
+                <p:commandButton value="Submit" actionListener="#{inventoryBean.updateUnits}" 
+                                 oncomplete="#{p:widgetVar('unitForm:unitDlg')}.hide()" update=":tableForm :growl"/>
+                <p:commandButton value="Cancel" actionListener="#{inventoryBean.clear}" 
+                                 oncomplete="#{p:widgetVar('unitForm:unitDlg')}.hide()"/>
             </p:panelGrid>
         </p:dialog>
     </h:form>

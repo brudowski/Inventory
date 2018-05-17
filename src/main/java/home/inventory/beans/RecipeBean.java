@@ -1,21 +1,21 @@
 package home.inventory.beans;
 
+import home.inventory.beans.data.RecipeLazyLoader;
 import home.inventory.entities.Ingredient;
-import home.inventory.entities.IngredientKey;
 import home.inventory.entities.PantryItem;
 import home.inventory.entities.Recipe;
-import home.inventory.enums.Unit;
 import home.inventory.repos.IngredientRepo;
 import home.inventory.repos.RecipeRepo;
 import io.vavr.collection.Stream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.apache.deltaspike.jpa.api.transaction.Transactional;
 import home.inventory.repos.PantryItemRepo;
+import java.util.List;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
 
 /**
  *
@@ -24,10 +24,9 @@ import home.inventory.repos.PantryItemRepo;
 @Named
 @SessionScoped
 public class RecipeBean implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
 
-    private final List<Recipe> recipes = new ArrayList<>();
     @Inject
     private RecipeRepo recipeRepo;
     @Inject
@@ -37,53 +36,70 @@ public class RecipeBean implements Serializable {
     private String recipeName;
     private String itemName;
     private double quantity;
-    private String selectedRecipe;
-    private String selectedItem;
     private String unit;
+    private Recipe recipe;
+    private Ingredient selectedIngredient;
+    @Inject
+    private RecipeLazyLoader recipes;
 
     @Transactional
     public void createRecipe() {
-        Recipe recipe = new Recipe(recipeName);
-        recipeRepo.save(recipe);
+        if (recipeRepo.findOptionalByName(recipeName) == null) {
+            recipe = new Recipe(recipeName);
+            recipeRepo.saveAndFlushAndRefresh(recipe);
+            clearIngredient();
+        } else {
+            fctx().addMessage(null, new FacesMessage("Error", "A recipe with that name already exists"));
+            clearRecipe();
+        }
     }
 
     @Transactional
     public void addIngredientToRecipe() {
-        Recipe recipe = recipeRepo.findBy(selectedRecipe);
-        PantryItem item = itemRepo.findBy(selectedItem);
+        PantryItem item = itemRepo.findBy(itemName);
         if (item == null) {
             item = new PantryItem(itemName, 0.0, unit);
-            itemRepo.save(item);
+            itemRepo.saveAndFlush(item);
+            fctx().addMessage(null, new FacesMessage("Note", "New Item created for this ingredient. "));
         } else {
-            //check if the units can be converted
-            if (!unit.equals(item.getUnits())) {
-                try {
-                    Unit u = Unit.valueOf(unit);
-                } catch (IllegalArgumentException ex) {
-                    //Display some message to the user
-                    return;
-                }
-            }
+            //check if the units can be converted 
+            //TODO: for a future build
+//            if (!unit.equals(item.getUnits())) {
+//                try {
+//                    Unit u = Unit.valueOf(unit);
+//                } catch (IllegalArgumentException ex) {
+//                    //Display some message to the user
+//                    return;
+//                }
+//            }
         }
         Ingredient ingredient = new Ingredient(item, quantity, recipe);
         if (!recipe.getIngredients().contains(ingredient)) {
-            ingredientRepo.save(ingredient);
+            ingredientRepo.saveAndFlush(ingredient);
+            fctx().addMessage(null, new FacesMessage("Success", "Added the following ingredient: " + item.getName()));
+            recipeRepo.refresh(recipe);
+            clearIngredient();
         } else {
-            //some message to user/log
+            fctx().addMessage(null, new FacesMessage("Warning", "This recipe already has the ingredient " + item.getName()));
         }
+    }
+    
+    private void clearIngredient(){
+        itemName = "";
+        quantity = 0.0;
+        unit = "";
     }
 
     @Transactional
     public void updateIngredientQuantity() {
-        Recipe recipe = recipeRepo.findBy(selectedRecipe);
-        PantryItem item = itemRepo.findBy(selectedItem);
+        PantryItem item = itemRepo.findBy(itemName);
         final String ingredientName = item.getName();
         Ingredient ingredient = Stream.ofAll(recipe.getIngredients())
                 .filter(i -> i.getItem().getName().equals(ingredientName))
                 .get();
         if (ingredient != null) {
             ingredient.setQuantity(quantity);
-            ingredientRepo.save(ingredient);
+            ingredientRepo.saveAndFlushAndRefresh(ingredient);
         } else {
             //Message to user/log
         }
@@ -91,19 +107,46 @@ public class RecipeBean implements Serializable {
 
     @Transactional
     public void removeIngredientFromRecipe() {
-//        Recipe recipe = recipeRepo.findBy(selectedRecipe);
-        Ingredient ingredient = ingredientRepo.findBy(new IngredientKey(recipeName, itemName));
-//        recipe.getIngredients().remove(ingredient);
-//        recipeRepo.save(recipe);
-        ingredientRepo.remove(ingredient);
+        ingredientRepo.attachAndRemove(selectedIngredient);
+        ingredientRepo.flushAndClear();
+        recipe = recipeRepo.findBy(recipe.getName());
+        fctx().addMessage(null, new FacesMessage("Success", "Ingredient " + itemName + " removed from the recipe"));
     }
 
     @Transactional
     public void deleteRecipe() {
-        Recipe recipe = recipeRepo.findBy(selectedRecipe);
-        ingredientRepo.removeAll(recipe.getIngredients());
-        recipeRepo.remove(recipe);
-        
+        Recipe rec = recipeRepo.findOptionalByName(recipe.getName());
+        List<Ingredient> ingredients = ingredientRepo.findAllByRecipeName(rec.getName()).getResultList();
+        ingredientRepo.removeAll(ingredients);
+        recipeRepo.remove(rec);
+        clearRecipe();
+    }
+
+    @Transactional
+    public void makeRecipe() {
+        if (canMakeRecipe()) {
+            Stream.ofAll(recipe.getIngredients())
+                    .map(ingredient -> {
+                        PantryItem item = ingredient.getItem();
+                        item.setQuantity(item.getQuantity() - ingredient.getQuantity());
+                        return item;
+                    }).forEach(item -> {
+                itemRepo.save(item);
+            });
+            itemRepo.flushAndClear();
+        } else {
+            fctx().addMessage(null, new FacesMessage("Error", "Not enough of an ingredient to make the recipe"));
+        }
+    }
+
+    @Transactional
+    public boolean canMakeRecipe() {
+        boolean success = false;
+        if (recipe != null) {
+            success = !Stream.ofAll(recipe.getIngredients())
+                    .exists(ingredient -> ingredient.getQuantity() > ingredient.getItem().getQuantity());
+        }
+        return success;
     }
 
     public String getRecipeName() {
@@ -112,6 +155,14 @@ public class RecipeBean implements Serializable {
 
     public void setRecipeName(String recipeName) {
         this.recipeName = recipeName;
+    }
+
+    public void setRecipe(Recipe recipe) {
+        this.recipe = recipe;
+    }
+
+    public Recipe getRecipe() {
+        return recipe;
     }
 
     public String getItemName() {
@@ -130,23 +181,32 @@ public class RecipeBean implements Serializable {
         this.quantity = quantity;
     }
 
-    public String getSelectedRecipe() {
-        return selectedRecipe;
+    public Recipe getSelectedRecipe() {
+        return recipe;
     }
 
-    public void setSelectedRecipe(String selectedRecipe) {
-        this.selectedRecipe = selectedRecipe;
+    public void setSelectedRecipe(String recipeName) {
+        this.recipeName = recipeName;
     }
 
-    public String getSelectedItem() {
-        return selectedItem;
-    }
-
-    public void setSelectedItem(String selectedItem) {
-        this.selectedItem = selectedItem;
-    }
-
-    public List<Recipe> getRecipes() {
+    public RecipeLazyLoader getRecipes() {
         return recipes;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public void clearRecipe() {
+        recipeName = "";
+        recipe = null;
+    }
+
+    private FacesContext fctx() {
+        return FacesContext.getCurrentInstance();
     }
 }

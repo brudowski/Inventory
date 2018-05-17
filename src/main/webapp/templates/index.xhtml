@@ -10,12 +10,13 @@
     </h:head>
     <h:body>
         <p:layout id="pageLayout" fullPage="true">
-            <p:layoutUnit position="north" size="100">
+            <p:layoutUnit position="north" size="65">
                 <ui:include src="header.xhtml"/>
             </p:layoutUnit>
             <p:layoutUnit position="center">
                 <ui:insert/>
             </p:layoutUnit>
+            <ui:insert name="extraLayouts"/>
         </p:layout>
         <p:growl id="growl" life="10000" showDetail="true"/>
     </h:body>
