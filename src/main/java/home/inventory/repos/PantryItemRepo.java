@@ -8,6 +8,7 @@ import org.apache.deltaspike.data.api.Repository;
  * @author BRudowski
  */
 @Repository
-public interface PantryItemRepo extends InventoryRepository<PantryItem, String>{
+public interface PantryItemRepo extends InventoryRepository<PantryItem, Long>{
     
+    PantryItem findOptionalByName(String name);
 }

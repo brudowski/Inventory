@@ -4,13 +4,13 @@ import home.inventory.beans.data.PantryItemLazyLoader;
 import home.inventory.entities.PantryItem;
 import home.inventory.repos.IngredientRepo;
 import java.io.Serializable;
-import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.apache.deltaspike.jpa.api.transaction.Transactional;
 import home.inventory.repos.PantryItemRepo;
+import javax.enterprise.context.SessionScoped;
 import org.primefaces.model.LazyDataModel;
 
 /**
@@ -32,6 +32,7 @@ public class InventoryBean implements Serializable {
     private String units;
     private double quantityModifier; //used to store how much should be added or removed from an item
     private PantryItem selected;
+    private String newName;
     @Inject
     private PantryItemLazyLoader items;
 
@@ -45,7 +46,7 @@ public class InventoryBean implements Serializable {
 
     @Transactional
     public void createItem() {
-        if (itemRepo.findBy(name) == null) {
+        if (itemRepo.findOptionalByName(name) == null) {
             PantryItem item = new PantryItem(name, quantity, units);
             itemRepo.save(item);
             fctx().addMessage(null, new FacesMessage("Success", "Created Item " + name));
@@ -54,9 +55,17 @@ public class InventoryBean implements Serializable {
             fctx().addMessage(null, new FacesMessage("Failure", "An item with that name already exists"));
         }
     }
+    
+    @Transactional
+    public void renameItem() {
+        PantryItem item = itemRepo.findOptionalByName(selected.getName());
+        item.setName(newName);
+        itemRepo.save(item);
+        clear();
+    }
 
     private void modifyItemQuantity(double modifier) {
-        PantryItem item = itemRepo.findBy(selected.getName());
+        PantryItem item = itemRepo.findOptionalByName(selected.getName());
         String action = "";
         String result = "Error";
         if (item != null) {
@@ -91,18 +100,18 @@ public class InventoryBean implements Serializable {
 
     @Transactional
     public void deleteItem() {
-        PantryItem item = itemRepo.findBy(selected.getName());
-        if(ingredientRepo.findAllByItemName(item.getName()).getResultList().isEmpty()){
+        PantryItem item = itemRepo.findOptionalByName(selected.getName());
+        if(item.getIngredients().isEmpty()){
             itemRepo.remove(item);
+            fctx().addMessage(null, new FacesMessage("Success", "Deleted "+item.getName()));
             clear();
-            fctx().addMessage(null, new FacesMessage("Success", "Deleted item"));
         } else {
-            fctx().addMessage(null, new FacesMessage("Error", "Selected item has associated recipes. Please remove it from those recipes first"));
+            fctx().addMessage(null, new FacesMessage("Error", "Selected item has associated ingredients in recipes. Please remove them from those recipes first"));
         }
     }
     @Transactional
     public void updateUnits() {
-        PantryItem item = itemRepo.findBy(selected.getName());
+        PantryItem item = itemRepo.findOptionalByName(selected.getName());
         item.setUnits(units);
         itemRepo.save(item);
         clear();
@@ -151,6 +160,14 @@ public class InventoryBean implements Serializable {
 
     public LazyDataModel<PantryItem> getItems() {
         return items;
+    }
+
+    public String getNewName() {
+        return newName;
+    }
+
+    public void setNewName(String newName) {
+        this.newName = newName;
     }
 
     private FacesContext fctx() {

@@ -8,7 +8,7 @@ import org.apache.deltaspike.data.api.Repository;
  * @author BRudowski
  */
 @Repository
-public interface RecipeRepo extends InventoryRepository<Recipe, String>{
+public interface RecipeRepo extends InventoryRepository<Recipe, Long>{
     
     Recipe findOptionalByName(String name);
 }

@@ -28,7 +28,7 @@ public class PantryItemLazyLoader extends LazyDataModel<PantryItem> {
     @Override
     @Transactional
     public PantryItem getRowData(String rowKey) {
-        return itemRepo.findBy(rowKey);
+        return itemRepo.findOptionalByName(rowKey);
     }
 
     @Override

@@ -17,6 +17,6 @@ public interface InventoryRepository<E, PK extends Serializable> extends EntityR
     }
 
     default void removeAll(Iterable<? extends E> items) {
-        items.forEach(this::remove);
+        items.forEach(this::attachAndRemove);
     }
 }

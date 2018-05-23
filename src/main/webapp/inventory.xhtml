@@ -10,9 +10,10 @@
     <h:form id="tableForm">
         <p:menuButton value="Options">
             <p:menuitem value="New Item" onclick="#{p:widgetVar('newItemForm:newItemDlg')}.show()"/>
-            <p:menuitem value="Add quantity" onclick="#{p:widgetVar('addQtyForm:addQtyDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
-            <p:menuitem value="Remove quantity" onclick="#{p:widgetVar('rmvQtyForm:rmvQtyDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
-            <p:menuitem value="Update units" onclick="#{p:widgetVar('unitForm:unitDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
+            <p:menuitem value="Add Quantity" onclick="#{p:widgetVar('addQtyForm:addQtyDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
+            <p:menuitem value="Remove Quantity" onclick="#{p:widgetVar('rmvQtyForm:rmvQtyDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
+            <p:menuitem value="Rename Item" onclick="#{p:widgetVar('renameForm:renameDlg')}.show()"  disabled="#{inventoryBean.selected==null}"/>
+            <p:menuitem value="Update Unit Type" onclick="#{p:widgetVar('unitForm:unitDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
             <p:menuitem value="Delete" onclick="#{p:widgetVar('deleteForm:deleteDlg')}.show()" disabled="#{inventoryBean.selected==null}"/>
         </p:menuButton>
         <br/>
@@ -70,7 +71,7 @@
     <h:form id="deleteForm">
         <p:dialog id="deleteDlg" closable="false" header="Please confirm deletion of #{inventoryBean.selected.name}">
             <p:panelGrid columns="2" style="border-width: 0">
-                <p:commandButton value="Submit" actionListener="#{inventoryBean.deleteItem}" 
+                <p:commandButton value="Delete" actionListener="#{inventoryBean.deleteItem}" 
                                  oncomplete="#{p:widgetVar('deleteForm:deleteDlg')}.hide()" update=":tableForm :growl"/>
                 <p:commandButton value="Cancel" actionListener="#{inventoryBean.clear}" 
                                  oncomplete="#{p:widgetVar('deleteForm:deleteDlg')}.hide()"/>
@@ -88,6 +89,20 @@
                                  oncomplete="#{p:widgetVar('unitForm:unitDlg')}.hide()" update=":tableForm :growl"/>
                 <p:commandButton value="Cancel" actionListener="#{inventoryBean.clear}" 
                                  oncomplete="#{p:widgetVar('unitForm:unitDlg')}.hide()"/>
+            </p:panelGrid>
+        </p:dialog>
+    </h:form>
+    <h:form id="renameForm">
+        <p:dialog id="renameDlg" closable="false" header="Update Item Name">
+            <p:panelGrid columns="2" style="border:0;">
+                <h:outputText value="Current item name"/>
+                <h:outputText value="#{inventoryBean.selected.name}"/>
+                <h:outputText value="New item name"/>
+                <p:inputText value="#{inventoryBean.newName}"/>
+                <p:commandButton value="Submit" actionListener="#{inventoryBean.renameItem()}" 
+                                 oncomplete="#{p:widgetVar('renameForm:renameDlg')}.hide()" update=":tableForm :growl"/>
+                <p:commandButton value="Cancel" actionListener="#{inventoryBean.clear}" 
+                                 oncomplete="#{p:widgetVar('renameForm:renameDlg')}.hide()"/>
             </p:panelGrid>
         </p:dialog>
     </h:form>

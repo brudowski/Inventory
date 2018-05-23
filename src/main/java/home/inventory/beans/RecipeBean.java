@@ -8,12 +8,12 @@ import home.inventory.repos.IngredientRepo;
 import home.inventory.repos.RecipeRepo;
 import io.vavr.collection.Stream;
 import java.io.Serializable;
-import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.apache.deltaspike.jpa.api.transaction.Transactional;
 import home.inventory.repos.PantryItemRepo;
 import java.util.List;
+import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 
@@ -46,7 +46,7 @@ public class RecipeBean implements Serializable {
     public void createRecipe() {
         if (recipeRepo.findOptionalByName(recipeName) == null) {
             recipe = new Recipe(recipeName);
-            recipeRepo.saveAndFlushAndRefresh(recipe);
+            recipeRepo.save(recipe);
             clearIngredient();
         } else {
             fctx().addMessage(null, new FacesMessage("Error", "A recipe with that name already exists"));
@@ -56,10 +56,10 @@ public class RecipeBean implements Serializable {
 
     @Transactional
     public void addIngredientToRecipe() {
-        PantryItem item = itemRepo.findBy(itemName);
+        PantryItem item = itemRepo.findOptionalByName(itemName);
         if (item == null) {
             item = new PantryItem(itemName, 0.0, unit);
-            itemRepo.saveAndFlush(item);
+            itemRepo.save(item);
             fctx().addMessage(null, new FacesMessage("Note", "New Item created for this ingredient. "));
         } else {
             //check if the units can be converted 
@@ -75,9 +75,10 @@ public class RecipeBean implements Serializable {
         }
         Ingredient ingredient = new Ingredient(item, quantity, recipe);
         if (!recipe.getIngredients().contains(ingredient)) {
-            ingredientRepo.saveAndFlush(ingredient);
+            ingredientRepo.save(ingredient);
             fctx().addMessage(null, new FacesMessage("Success", "Added the following ingredient: " + item.getName()));
-            recipeRepo.refresh(recipe);
+            itemRepo.flushAndClear();
+            recipe.getIngredients().add(ingredient);
             clearIngredient();
         } else {
             fctx().addMessage(null, new FacesMessage("Warning", "This recipe already has the ingredient " + item.getName()));
@@ -92,33 +93,33 @@ public class RecipeBean implements Serializable {
 
     @Transactional
     public void updateIngredientQuantity() {
-        PantryItem item = itemRepo.findBy(itemName);
+        PantryItem item = itemRepo.findOptionalByName(itemName);
         final String ingredientName = item.getName();
         Ingredient ingredient = Stream.ofAll(recipe.getIngredients())
-                .filter(i -> i.getItem().getName().equals(ingredientName))
+                .filter(i -> i.getPantryItem().getName().equals(ingredientName))
                 .get();
         if (ingredient != null) {
+            ingredient = ingredientRepo.findBy(ingredient.getId());
             ingredient.setQuantity(quantity);
-            ingredientRepo.saveAndFlushAndRefresh(ingredient);
+            ingredientRepo.save(ingredient);
+            ingredientRepo.flushAndClear();
+            recipe=recipeRepo.findOptionalByName(recipe.getName());
         } else {
-            //Message to user/log
+            fctx().addMessage(null, new FacesMessage("Error", "Ingredient not found"));
         }
     }
 
     @Transactional
     public void removeIngredientFromRecipe() {
+        recipe.getIngredients().remove(selectedIngredient);
         ingredientRepo.attachAndRemove(selectedIngredient);
         ingredientRepo.flushAndClear();
-        recipe = recipeRepo.findBy(recipe.getName());
-        fctx().addMessage(null, new FacesMessage("Success", "Ingredient " + itemName + " removed from the recipe"));
+        fctx().addMessage(null, new FacesMessage("Success", "Ingredient " + selectedIngredient.getPantryItem().getName() + " removed from the recipe"));
     }
 
     @Transactional
     public void deleteRecipe() {
-        Recipe rec = recipeRepo.findOptionalByName(recipe.getName());
-        List<Ingredient> ingredients = ingredientRepo.findAllByRecipeName(rec.getName()).getResultList();
-        ingredientRepo.removeAll(ingredients);
-        recipeRepo.remove(rec);
+        recipeRepo.attachAndRemove(recipe);
         clearRecipe();
     }
 
@@ -127,7 +128,7 @@ public class RecipeBean implements Serializable {
         if (canMakeRecipe()) {
             Stream.ofAll(recipe.getIngredients())
                     .map(ingredient -> {
-                        PantryItem item = ingredient.getItem();
+                        PantryItem item = ingredient.getPantryItem();
                         item.setQuantity(item.getQuantity() - ingredient.getQuantity());
                         return item;
                     }).forEach(item -> {
@@ -142,11 +143,24 @@ public class RecipeBean implements Serializable {
     @Transactional
     public boolean canMakeRecipe() {
         boolean success = false;
-        if (recipe != null) {
+        if (recipe != null && !recipe.getIngredients().isEmpty()) {
             success = !Stream.ofAll(recipe.getIngredients())
-                    .exists(ingredient -> ingredient.getQuantity() > ingredient.getItem().getQuantity());
+                    .exists(ingredient -> ingredient.getQuantity() > ingredient.getPantryItem().getQuantity());
         }
         return success;
+    }
+    
+    @Transactional
+    public void changeIngredientQuantity() {
+        Ingredient ingredient = Stream.ofAll(recipe.getIngredients())
+                .filter(ing -> ing.equals(selectedIngredient))
+                .getOrNull();
+        ingredient = ingredientRepo.findBy(ingredient.getId());
+        ingredient.setQuantity(quantity);
+        ingredientRepo.save(ingredient);
+        ingredientRepo.flushAndClear();
+        recipe=recipeRepo.findBy(recipe.getId());
+        fctx().addMessage(null, new FacesMessage("Success", "Modified ingredient quantity to be "+quantity));
     }
 
     public String getRecipeName() {
@@ -199,6 +213,14 @@ public class RecipeBean implements Serializable {
 
     public void setUnit(String unit) {
         this.unit = unit;
+    }
+
+    public Ingredient getSelectedIngredient() {
+        return selectedIngredient;
+    }
+
+    public void setSelectedIngredient(Ingredient selectedIngredient) {
+        this.selectedIngredient = selectedIngredient;
     }
 
     public void clearRecipe() {

@@ -1,26 +1,21 @@
 package home.inventory.entities;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import java.util.*;
+import javax.persistence.*;
 
 /**
  *
  * @author BRudowski
  */
 @Entity
-public class PantryItem implements Serializable {
+public class PantryItem extends SeqIdEntity implements Serializable {
     
     private static final long serialVersionUID = 1L;
-    @Id
     private String name;
     private double quantity;
-    private String units; //Do I want this to be an enum?
-    @OneToMany(mappedBy="item")
+    private String units;
+    @OneToMany(mappedBy="pantryItem")
     private final List<Ingredient> ingredients = new ArrayList<>();
 
     public PantryItem() {
@@ -56,29 +51,8 @@ public class PantryItem implements Serializable {
         this.units = units;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 67 * hash + Objects.hashCode(this.name);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final PantryItem other = (PantryItem) obj;
-        if (!Objects.equals(this.name, other.name)) {
-            return false;
-        }
-        return true;
+    public List<Ingredient> getIngredients() {
+        return ingredients;
     }
     
     @Override

@@ -28,7 +28,7 @@ public class RecipeLazyLoader extends LazyDataModel<Recipe> {
     @Override
     @Transactional
     public Recipe getRowData(String rowKey) {
-        return recipeRepo.findBy(rowKey);
+        return recipeRepo.findOptionalByName(rowKey);
     }
 
     @Override

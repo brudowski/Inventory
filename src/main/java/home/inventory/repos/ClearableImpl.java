@@ -7,15 +7,15 @@ package home.inventory.repos;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import org.apache.deltaspike.data.spi.DelegateQueryHandler;
 import org.apache.deltaspike.jpa.api.transaction.TransactionScoped;
-import org.apache.deltaspike.jpa.api.transaction.Transactional;
 
 /**
  *
- * @author Bloody
+ * @author BRudowski
  */
 @TransactionScoped
-public class ClearableImpl implements Clearable{
+public class ClearableImpl implements Clearable, DelegateQueryHandler{
 
     @Inject
     private EntityManager em;
@@ -25,5 +25,4 @@ public class ClearableImpl implements Clearable{
         em.flush();
         em.clear();
     }
-    
 }
