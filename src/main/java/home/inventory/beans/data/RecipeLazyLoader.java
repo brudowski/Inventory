@@ -11,6 +11,7 @@ import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
 
 /**
+ * A class to lazily load Recipes from the database
  *
  * @author BRudowski
  */
@@ -19,12 +20,12 @@ public class RecipeLazyLoader extends LazyDataModel<Recipe> {
 
     @Inject
     private RecipeRepo recipeRepo;
-    
+
     @Override
     public Object getRowKey(Recipe recipe) {
         return recipe.getName();
     }
-    
+
     @Override
     @Transactional
     public Recipe getRowData(String rowKey) {
@@ -37,7 +38,7 @@ public class RecipeLazyLoader extends LazyDataModel<Recipe> {
         List<Recipe> recipes = recipeRepo.findAll();
         int size = recipes.size();
         this.setRowCount(size);
-        if(size > pageSize){
+        if (size > pageSize) {
             recipes = recipes.subList(first, first + pageSize);
         }
         return recipes;

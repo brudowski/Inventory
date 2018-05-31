@@ -1,7 +1,8 @@
 package home.inventory.exception;
 
 /**
- *
+ * A custom Exception to alert if one unit cannot be converted into another unit
+ * 
  * @author BRudowski
  */
 public class InvalidConversionException extends Exception{

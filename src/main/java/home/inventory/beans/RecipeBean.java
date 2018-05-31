@@ -12,12 +12,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import org.apache.deltaspike.jpa.api.transaction.Transactional;
 import home.inventory.repos.PantryItemRepo;
-import java.util.List;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 
 /**
+ * Manages the creation, modification, and deletion of both Recipes and
+ * Ingredients associated with the Recipes
  *
  * @author BRudowski
  */
@@ -42,6 +43,10 @@ public class RecipeBean implements Serializable {
     @Inject
     private RecipeLazyLoader recipes;
 
+    /**
+     * Creates a new Recipe with the provided recipeName and sets it as the
+     * currently selected Recipe
+     */
     @Transactional
     public void createRecipe() {
         if (recipeRepo.findOptionalByName(recipeName) == null) {
@@ -54,6 +59,12 @@ public class RecipeBean implements Serializable {
         }
     }
 
+    /**
+     * Creates an Ingredient and associates it to the selected Recipe.
+     * Additionally this method will automatically create a new PantryItem with
+     * 0 quantity if a PantryItem with the provided itemName does not already
+     * exist
+     */
     @Transactional
     public void addIngredientToRecipe() {
         PantryItem item = itemRepo.findOptionalByName(itemName);
@@ -63,7 +74,7 @@ public class RecipeBean implements Serializable {
             fctx().addMessage(null, new FacesMessage("Note", "New Item created for this ingredient. "));
         } else {
             //check if the units can be converted 
-            //TODO: for a future build
+            //This was pushed back to a future build
 //            if (!unit.equals(item.getUnits())) {
 //                try {
 //                    Unit u = Unit.valueOf(unit);
@@ -84,31 +95,16 @@ public class RecipeBean implements Serializable {
             fctx().addMessage(null, new FacesMessage("Warning", "This recipe already has the ingredient " + item.getName()));
         }
     }
-    
-    private void clearIngredient(){
+
+    private void clearIngredient() {
         itemName = "";
         quantity = 0.0;
         unit = "";
     }
 
-    @Transactional
-    public void updateIngredientQuantity() {
-        PantryItem item = itemRepo.findOptionalByName(itemName);
-        final String ingredientName = item.getName();
-        Ingredient ingredient = Stream.ofAll(recipe.getIngredients())
-                .filter(i -> i.getPantryItem().getName().equals(ingredientName))
-                .get();
-        if (ingredient != null) {
-            ingredient = ingredientRepo.findBy(ingredient.getId());
-            ingredient.setQuantity(quantity);
-            ingredientRepo.save(ingredient);
-            ingredientRepo.flushAndClear();
-            recipe=recipeRepo.findOptionalByName(recipe.getName());
-        } else {
-            fctx().addMessage(null, new FacesMessage("Error", "Ingredient not found"));
-        }
-    }
-
+    /**
+     * Removes a selected Ingredient from the selected Recipe
+     */
     @Transactional
     public void removeIngredientFromRecipe() {
         recipe.getIngredients().remove(selectedIngredient);
@@ -117,12 +113,21 @@ public class RecipeBean implements Serializable {
         fctx().addMessage(null, new FacesMessage("Success", "Ingredient " + selectedIngredient.getPantryItem().getName() + " removed from the recipe"));
     }
 
+    /**
+     * Deletes the selected recipe and all associated Ingredients from the
+     * database
+     */
     @Transactional
     public void deleteRecipe() {
         recipeRepo.attachAndRemove(recipe);
         clearRecipe();
     }
 
+    /**
+     * Removes the quantity of each Ingredient on the selected Recipe from each
+     * associated PantryItem. This will not attempt to remove any quantities if
+     * the recipe cannot be made. See canMakeRecipe()
+     */
     @Transactional
     public void makeRecipe() {
         if (canMakeRecipe()) {
@@ -140,6 +145,14 @@ public class RecipeBean implements Serializable {
         }
     }
 
+    /**
+     * Checks if enough of each PantryItem associated with each Ingredient on a
+     * previously selected Recipe exists to be able to cook the recipe
+     *
+     * @return True if each PantryItem has a higher quantity than each
+     * Ingredient in the Recipe. False if any PantryItems have a lower quantity
+     * than each Ingredient in the Recipe
+     */
     @Transactional
     public boolean canMakeRecipe() {
         boolean success = false;
@@ -149,7 +162,11 @@ public class RecipeBean implements Serializable {
         }
         return success;
     }
-    
+
+    /**
+     * Changes the value stored for the quantity of the ingredient to use in the
+     * associated recipe
+     */
     @Transactional
     public void changeIngredientQuantity() {
         Ingredient ingredient = Stream.ofAll(recipe.getIngredients())
@@ -159,8 +176,8 @@ public class RecipeBean implements Serializable {
         ingredient.setQuantity(quantity);
         ingredientRepo.save(ingredient);
         ingredientRepo.flushAndClear();
-        recipe=recipeRepo.findBy(recipe.getId());
-        fctx().addMessage(null, new FacesMessage("Success", "Modified ingredient quantity to be "+quantity));
+        recipe = recipeRepo.findBy(recipe.getId());
+        fctx().addMessage(null, new FacesMessage("Success", "Modified ingredient quantity to be " + quantity));
     }
 
     public String getRecipeName() {

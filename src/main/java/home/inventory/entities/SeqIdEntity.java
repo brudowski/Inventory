@@ -3,6 +3,7 @@ package home.inventory.entities;
 import javax.persistence.*;
 
 /**
+ * Superclass for all entities that would use a sequence-generated ID field
  *
  * @author BRudowski
  */

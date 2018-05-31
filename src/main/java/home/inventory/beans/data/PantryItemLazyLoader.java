@@ -11,6 +11,7 @@ import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
 
 /**
+ * A class to lazily load PantryItems from the database
  *
  * @author BRudowski
  */
@@ -19,12 +20,12 @@ public class PantryItemLazyLoader extends LazyDataModel<PantryItem> {
 
     @Inject
     private PantryItemRepo itemRepo;
-    
+
     @Override
     public String getRowKey(PantryItem item) {
         return item.getName();
     }
-    
+
     @Override
     @Transactional
     public PantryItem getRowData(String rowKey) {
@@ -37,7 +38,7 @@ public class PantryItemLazyLoader extends LazyDataModel<PantryItem> {
         List<PantryItem> items = itemRepo.findAll();
         int size = items.size();
         this.setRowCount(size);
-        if(size > pageSize){
+        if (size > pageSize) {
             items = items.subList(first, first + pageSize);
         }
         return items;

@@ -15,8 +15,6 @@ public class Recipe extends SeqIdEntity implements Serializable {
     private String name;
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.REMOVE)
     private final List<Ingredient> ingredients = new ArrayList<>(); 
-//    private final List<String> categories = new ArrayList<>(); //TO BE IMPLEMENTED IN A FUTURE BUILD
-//    private String instructions; //TO BE IMPLEMENTED IN A FUTURE BUILD
 
     public Recipe() {
     }

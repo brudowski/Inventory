@@ -8,6 +8,8 @@ import java.util.EnumSet;
  * This class will contain various conversions to allow for recipes that
  * reference different units than the stored items, such as pounds when the item
  * uses ounces
+ * 
+ * Note: Currently in-development and not used elsewhere in the code
  *
  * @author BRudowski
  */

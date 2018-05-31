@@ -4,7 +4,7 @@
 
     <groupId>home</groupId>
     <artifactId>Inventory</artifactId>
-    <version>1.0_RC20180522</version>
+    <version>1.0</version>
     <packaging>war</packaging>
 
     <name>Inventory</name>

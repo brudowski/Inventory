@@ -2,7 +2,6 @@ package home.inventory.beans;
 
 import home.inventory.beans.data.PantryItemLazyLoader;
 import home.inventory.entities.PantryItem;
-import home.inventory.repos.IngredientRepo;
 import java.io.Serializable;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
@@ -14,6 +13,7 @@ import javax.enterprise.context.SessionScoped;
 import org.primefaces.model.LazyDataModel;
 
 /**
+ * Manages the creation, modification, and deletion of PantryItems.
  *
  * @author BRudowski
  */
@@ -25,8 +25,6 @@ public class InventoryBean implements Serializable {
 
     @Inject
     private PantryItemRepo itemRepo;
-    @Inject
-    private IngredientRepo ingredientRepo;
     private String name;
     private double quantity;
     private String units;
@@ -36,6 +34,9 @@ public class InventoryBean implements Serializable {
     @Inject
     private PantryItemLazyLoader items;
 
+    /**
+     * Used to clear the settable values between method calls as needed
+     */
     public void clear() {
         name = "";
         quantity = 0;
@@ -44,6 +45,10 @@ public class InventoryBean implements Serializable {
         selected = null;
     }
 
+    /**
+     * Creates a new PantryItem based on the previously set name, quantity, and
+     * units. Fails if the name is already in use.
+     */
     @Transactional
     public void createItem() {
         if (itemRepo.findOptionalByName(name) == null) {
@@ -55,7 +60,10 @@ public class InventoryBean implements Serializable {
             fctx().addMessage(null, new FacesMessage("Failure", "An item with that name already exists"));
         }
     }
-    
+
+    /**
+     * Changes the name associated with the currently selected PantryItem
+     */
     @Transactional
     public void renameItem() {
         PantryItem item = itemRepo.findOptionalByName(selected.getName());
@@ -69,6 +77,7 @@ public class InventoryBean implements Serializable {
         String action = "";
         String result = "Error";
         if (item != null) {
+            //ensures the item amount never ends up negative
             if (modifier + item.getQuantity() >= 0) {
                 item.setQuantity(item.getQuantity() + modifier);
                 itemRepo.save(item);
@@ -88,34 +97,51 @@ public class InventoryBean implements Serializable {
         clear();
     }
 
+    /**
+     * Adds the amount in quantityModifier to the existing quantity for the
+     * currently selected PantryItem
+     */
     @Transactional
     public void addQuantity() {
         modifyItemQuantity(quantityModifier);
     }
 
+    /**
+     * Subtracts the amount in quantityModifier from the existing quantity for
+     * the currently selected PantryItem
+     */
     @Transactional
     public void removeQuantity() {
         modifyItemQuantity(-quantityModifier);
     }
 
+    /**
+     * Deletes the selected PantryItem from the database. This will fail if the
+     * PantryItem is referenced in an ingredient in any recipe
+     */
     @Transactional
     public void deleteItem() {
         PantryItem item = itemRepo.findOptionalByName(selected.getName());
-        if(item.getIngredients().isEmpty()){
+        if (item.getIngredients().isEmpty()) {
             itemRepo.remove(item);
-            fctx().addMessage(null, new FacesMessage("Success", "Deleted "+item.getName()));
+            fctx().addMessage(null, new FacesMessage("Success", "Deleted " + item.getName()));
             clear();
         } else {
             fctx().addMessage(null, new FacesMessage("Error", "Selected item has associated ingredients in recipes. Please remove them from those recipes first"));
         }
     }
+
+    /**
+     * Updates the unit name for the currently selected PantryItem to the new
+     * value stored in "units"
+     */
     @Transactional
     public void updateUnits() {
         PantryItem item = itemRepo.findOptionalByName(selected.getName());
         item.setUnits(units);
         itemRepo.save(item);
         clear();
-        fctx().addMessage(null, new FacesMessage("Success", "Updated units to "+units));
+        fctx().addMessage(null, new FacesMessage("Success", "Updated units to " + units));
     }
 
     public String getName() {

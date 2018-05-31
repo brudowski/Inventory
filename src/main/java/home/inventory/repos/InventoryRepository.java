@@ -5,6 +5,9 @@ import org.apache.deltaspike.data.api.EntityRepository;
 import org.apache.deltaspike.data.api.criteria.CriteriaSupport;
 
 /**
+ * A generic EntityRepository that can be extended for all entities in the
+ * current project and makes use of the Clearable methods. Built upon the
+ * Deltaspike model
  *
  * @author BRudowski
  * @param <E> An entity class

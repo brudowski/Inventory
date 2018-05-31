@@ -58,7 +58,7 @@ public class DatabaseBean {
         Properties props = new Properties();
         props.setProperty("javax.persistence.jdbc.driver", "org.hsqldb.jdbc.JDBCDriver");
         props.setProperty("javax.persistence.jdbc.url", dbUrl);
-        props.setProperty("javax.persistence.jdbc.user", "sa"); //TODO: revisit user/pass requirements
+        props.setProperty("javax.persistence.jdbc.user", "sa");
         props.setProperty("javax.persistence.jdbc.password", "");
         emf = Persistence.createEntityManagerFactory("INVENTORYPU", props);
         buildTables(emf);
@@ -71,7 +71,8 @@ public class DatabaseBean {
             getLiquibase(em.unwrap(Connection.class)).update((Contexts)null);
             em.getTransaction().commit();
         } catch (LiquibaseException ex) {
-            //TODO: Replace with a real logging statement
+            //this should realistically never throw
+            //TODO: Replace with a logging statement in the next build that includes a logger just in case it does throw
         } finally {
             em.close();
         }

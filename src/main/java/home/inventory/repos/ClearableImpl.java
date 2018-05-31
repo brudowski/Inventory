@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package home.inventory.repos;
 
 import javax.inject.Inject;
@@ -11,7 +6,7 @@ import org.apache.deltaspike.data.spi.DelegateQueryHandler;
 import org.apache.deltaspike.jpa.api.transaction.TransactionScoped;
 
 /**
- *
+ * Adds a method to flush and clear the EntityManager
  * @author BRudowski
  */
 @TransactionScoped
@@ -20,6 +15,9 @@ public class ClearableImpl implements Clearable, DelegateQueryHandler{
     @Inject
     private EntityManager em;
     
+    /**
+     * Calls flush() and clear() on the injected EntityManager
+     */
     @Override
     public void flushAndClear() {
         em.flush();
