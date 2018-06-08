@@ -11,6 +11,7 @@ This application is intended to be used to track the food in your pantry, and if
 
 The application currently contains two pages. One page manages the current inventory of your pantry, and the other page manages all recipes and associated ingredients. Additional pages such as a "Available Recipes" and "Recently Cooked" are planned for future releases. Planned future development can be viewed at https://trello.com/b/oiFO6FA9/pantry-inventory-tracker
 
+
 ## Installation:
 
 To run this application, Tomcat must first be installed and running. Once Tomcat is running, the .WAR file should be copied into the webapps folder of your Tomcat home directory (e.g. C:\Program Files\tomcat\webapps).
@@ -84,3 +85,7 @@ For the ingredient actions, Modify will change the current quantity of the ingre
 Delete Ingredient will delete the ingredient from the recipe. Users will be prompted to confirm that the ingredient will be deleted from the recipe. Ingredients that are deleted will have to be recreated manually. There is no automated recovery for deleted items.
 
 <a href="./img/IngredientDelete.PNG"><img src="./img/IngredientDelete.PNG"/></a>
+
+## Contact
+Issues can be filed against the project here. Additionally, feel free to contact me at **bjrudowski [at] gmail [dot] com** with any issues, suggestions, bugs, or comments in general about the project. I intend to keep the trello page up to date as I continue improving this application. https://trello.com/b/oiFO6FA9/pantry-inventory-tracker
+
