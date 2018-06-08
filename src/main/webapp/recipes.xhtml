@@ -74,7 +74,7 @@
     </h:form>
 
     <h:form id="ingQtyForm">
-        <p:dialog id="ingQtyDlg" closable="false" header="Change Quantity for #{recipeBean.selectedIngredient}">
+        <p:dialog id="ingQtyDlg" closable="false" header="Change Quantity for #{recipeBean.selectedIngredient.pantryItem.name}">
             <p:panelGrid columns="2">
                 <h:outputText value="Current Quantity to Use"/><h:outputText value="#{recipeBean.selectedIngredient.quantity}"/>
                 <h:outputText value="New Quantity to Use"/><p:inputNumber value="#{recipeBean.quantity}" minValue="0"/>

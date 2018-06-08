@@ -20,7 +20,7 @@
         <p:dataTable var="item" value="#{inventoryBean.items}" paginator="true" rows="30" selectionMode="single"
                      paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
                      id="itemTable" lazy="true" resizableColumns="true" selection="#{inventoryBean.selected}">
-            <p:ajax event="rowSelect" update=":tableForm :addQtyForm :rmvQtyForm :deleteForm :unitForm"/>
+            <p:ajax event="rowSelect" update=":tableForm :addQtyForm :rmvQtyForm :deleteForm :unitForm :renameForm"/>
             <p:column headerText="Name">
                 <h:outputText value="#{item.name}"/>
             </p:column>
