@@ -16,7 +16,7 @@ The application currently contains two pages. One page manages the current inven
 
 To run this application, Tomcat must first be installed and running. Once Tomcat is running, the .WAR file should be copied into the webapps folder of your Tomcat home directory (e.g. C:\Program Files\tomcat\webapps).
 
-The application is accessible via any web browser by navigating to http:\\localhost:8080\inventory. Additionally, it can be accessed from other devices on the network by navigating to the IP address of the hosting machine in place of "localhost" (e.g. http:\\192.168.1.12:8080\inventory)
+The application is accessible via any web browser by navigating to http://localhost:8080/inventory. Additionally, it can be accessed from other devices on the network by navigating to the IP address of the hosting machine in place of "localhost" (e.g. http://192.168.1.12:8080/inventory)
 
 ## Usage:
 
